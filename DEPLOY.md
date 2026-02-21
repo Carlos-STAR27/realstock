@@ -2,7 +2,7 @@
 
 ## 架构概述
 
-- **前端**: Next.js (部署到 Vercel)
+- **前端**: Next.js (部署到 Netlify)
 - **后端**: FastAPI (部署到 Railway)
 - **数据库**: TiDB Cloud (已有)
 
@@ -10,48 +10,49 @@
 
 ## 第一步：准备 GitHub 仓库
 
-### 1. 初始化 Git 仓库
-
-```bash
-cd /Volumes/Data/Trae/cn_stock
-git init
-```
-
-### 2. 创建 GitHub 仓库
-
-在 GitHub 上创建一个名为 `realstock` 的新仓库。
-
-### 3. 连接到远程仓库
-
-```bash
-git remote add origin https://github.com/你的用户名/realstock.git
-```
+您已经完成这一步！代码已推送到 https://github.com/Carlos-STAR27/realstock
 
 ---
 
-## 第二步：部署前端到 Vercel
+## 第二步：部署前端到 Netlify
 
-### 1. 准备前端配置
+### 1. 登录 Netlify
 
-确保 `quantum-stock/.env.example` 已正确配置。
+访问 https://netlify.com 并使用 GitHub 账号登录。
 
-### 2. 登录 Vercel
+### 2. 导入项目
 
-访问 https://vercel.com 并使用 GitHub 账号登录。
+1. 点击 "Add new site" → "Deploy with Git"
+2. 选择 "GitHub"
+3. 授权 Netlify 访问您的 GitHub 仓库
+4. 选择 `realstock` 仓库
 
-### 3. 导入项目
+### 3. 配置部署设置
 
-1. 点击 "Add New Project"
-2. 选择 `realstock` 仓库
-3. 在 "Root Directory" 中选择 `quantum-stock`
-4. 配置环境变量：
-   - `NEXTAUTH_URL`: 你的 Vercel 应用 URL (例如: `https://realstock.vercel.app`)
-   - `NEXTAUTH_SECRET`: 生成一个随机字符串 (可以使用 `openssl rand -hex 32` 生成)
-   - `NEXT_PUBLIC_API_URL`: 你的 Railway 后端 URL (稍后获取)
+在 "Site settings" 页面：
 
-### 4. 部署
+- **Base directory**: `quantum-stock`
+- **Build command**: `npm run build`
+- **Publish directory**: `.next`
 
-点击 "Deploy" 等待部署完成。
+### 4. 配置环境变量
+
+在 "Site settings" → "Environment variables" 中添加：
+
+```
+NEXTAUTH_URL=https://你的站点名.netlify.app
+NEXTAUTH_SECRET=生成一个随机字符串
+NEXT_PUBLIC_API_URL=你的Railway后端URL (稍后获取)
+```
+
+生成 `NEXTAUTH_SECRET`：
+```bash
+openssl rand -hex 32
+```
+
+### 5. 部署
+
+点击 "Deploy site" 等待部署完成。
 
 ---
 
@@ -94,11 +95,11 @@ Railway 会自动检测 `Dockerfile` 并开始部署。
 
 ## 第四步：完成配置
 
-### 1. 更新 Vercel 环境变量
+### 1. 更新 Netlify 环境变量
 
-回到 Vercel 项目设置，更新 `NEXT_PUBLIC_API_URL` 为你的 Railway 后端 URL。
+回到 Netlify 项目设置，更新 `NEXT_PUBLIC_API_URL` 为你的 Railway 后端 URL。
 
-### 2. 重新部署 Vercel
+### 2. 重新部署 Netlify
 
 触发一次新的部署以使环境变量生效。
 
@@ -179,4 +180,4 @@ SESSION_SECRET=your_session_secret_here
 - **数据库**: TiDB (MySQL兼容)
 - **认证**: NextAuth.js
 - **样式**: Tailwind CSS
-- **部署**: Vercel (前端) + Railway (后端)
+- **部署**: Netlify (前端) + Railway (后端)
