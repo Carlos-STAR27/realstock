@@ -18,12 +18,12 @@ RUN pip install --no-cache-dir -r requirements.txt
 COPY api/ /app/api/
 COPY utils/ /app/utils/
 
-# 暴露端口
+# 暴露端口 (Zeabur 会使用 PORT 环境变量)
 EXPOSE 8000
 
 # 健康检查
 HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
-    CMD curl -f http://localhost:8000/ || exit 1
+    CMD curl -f http://localhost:${PORT:-8000}/ || exit 1
 
-# 运行应用
-CMD ["uvicorn", "api.main:app", "--host", "0.0.0.0", "--port", "8000"]
+# 运行应用 (使用 shell 形式以支持环境变量)
+CMD ["sh", "-c", "uvicorn api.main:app --host 0.0.0.0 --port ${PORT:-8000}"]
