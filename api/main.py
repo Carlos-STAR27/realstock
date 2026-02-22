@@ -286,6 +286,31 @@ def status_db(dep=Depends(require_auth)):
         return JSONResponse(status_code=500, content={"ok": False, "error": str(e)})
 
 
+@app.get("/api/debug/config")
+def debug_config():
+    """调试端点 - 检查环境变量配置"""
+    return {
+        "APP_USERNAME": get_config("APP_USERNAME", "NOT_SET"),
+        "APP_PASSWORD_SET": bool(get_config("APP_PASSWORD")),
+        "DB_HOST_SET": bool(get_config("DB_HOST")),
+        "DB_USER_SET": bool(get_config("DB_USER")),
+        "DB_NAME_SET": bool(get_config("DB_NAME")),
+        "SESSION_SECRET_SET": bool(get_config("SESSION_SECRET") or get_config("APP_SECRET")),
+    }
+
+
+@app.get("/api/debug/db")
+def debug_db():
+    """调试端点 - 测试数据库连接"""
+    try:
+        engine = get_db_engine()
+        with engine.connect() as conn:
+            conn.execute(text("SELECT 1"))
+        return {"ok": True, "message": "数据库连接成功"}
+    except Exception as e:
+        return {"ok": False, "error": str(e)}
+
+
 def format_date_str(date_str):
     """将 yyyymmdd 格式转换为 yyyy-mm-dd 格式"""
     if date_str and len(str(date_str)) == 8:
