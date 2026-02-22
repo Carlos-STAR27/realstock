@@ -1,5 +1,5 @@
 [build]
-  base = "cn-stock"
+  base = "quantum-stock"
   command = "npm run build"
   publish = ".next"
 
