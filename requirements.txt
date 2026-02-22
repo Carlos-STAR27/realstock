@@ -12,3 +12,6 @@ certifi==2026.1.4
 fastapi
 uvicorn[standard]
 psutil
+itsdangerous
+python-multipart
+
