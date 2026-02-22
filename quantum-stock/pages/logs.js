@@ -3,6 +3,7 @@ import { useRouter } from 'next/router';
 import { useState, useEffect } from 'react';
 import { FileText, Filter, Search, CheckCircle, AlertCircle, XCircle, Info, Trash2 } from 'lucide-react';
 import Layout from '../components/Layout';
+import { getAuthHeaders } from '../utils/api';
 
 export default function LogsPage() {
   const { data: session } = useSession();
@@ -40,8 +41,9 @@ export default function LogsPage() {
 
   const loadFilterOptions = async () => {
     try {
-      const res = await fetch('/api/logs/filters', {
-        credentials: 'include'
+      const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+      const res = await fetch(`${API_URL}/api/logs/filters`, {
+        headers: getAuthHeaders(session)
       });
       const data = await res.json();
       setFilterOptions(data);
@@ -53,6 +55,7 @@ export default function LogsPage() {
   const loadLogs = async () => {
     setIsLoading(true);
     try {
+      const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
       const params = new URLSearchParams();
       if (filters.task_name) params.append('task_name', filters.task_name);
       if (filters.start_date) params.append('start_date', filters.start_date);
@@ -60,8 +63,8 @@ export default function LogsPage() {
       if (filters.status) params.append('status', filters.status);
       params.append('limit', 100);
 
-      const res = await fetch('/api/logs/list?' + params.toString(), {
-        credentials: 'include'
+      const res = await fetch(`${API_URL}/api/logs/list?${params.toString()}`, {
+        headers: getAuthHeaders(session)
       });
       const data = await res.json();
       setLogs(data.items || []);
@@ -79,15 +82,16 @@ export default function LogsPage() {
 
     setIsDeleting(true);
     try {
+      const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
       const params = new URLSearchParams();
       if (filters.task_name) params.append('task_name', filters.task_name);
       if (filters.start_date) params.append('start_date', filters.start_date);
       if (filters.end_date) params.append('end_date', filters.end_date);
       if (filters.status) params.append('status', filters.status);
 
-      const res = await fetch('/api/logs?' + params.toString(), {
+      const res = await fetch(`${API_URL}/api/logs?${params.toString()}`, {
         method: 'DELETE',
-        credentials: 'include'
+        headers: getAuthHeaders(session)
       });
 
       if (res.ok) {

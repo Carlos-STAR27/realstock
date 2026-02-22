@@ -3,6 +3,7 @@ import { useRouter } from 'next/router';
 import { useState, useEffect } from 'react';
 import { Users, Plus, Edit2, Trash2, CheckCircle, AlertCircle, Key, User, X } from 'lucide-react';
 import Layout from '../components/Layout';
+import { getAuthHeaders } from '../utils/api';
 
 export default function UsersPage() {
   const { data: session } = useSession();
@@ -51,8 +52,9 @@ export default function UsersPage() {
   const loadUsers = async () => {
     setIsLoading(true);
     try {
-      const res = await fetch('/api/users', {
-        credentials: 'include'
+      const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+      const res = await fetch(`${API_URL}/api/users`, {
+        headers: getAuthHeaders(session)
       });
       const data = await res.json();
       setUsers(data.items || []);
@@ -71,10 +73,10 @@ export default function UsersPage() {
   const handleCreateSubmit = async (e) => {
     e.preventDefault();
     try {
-      const res = await fetch('/api/users', {
+      const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+      const res = await fetch(`${API_URL}/api/users`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
+        headers: getAuthHeaders(session),
         body: JSON.stringify(createForm)
       });
       if (res.ok) {
@@ -94,10 +96,10 @@ export default function UsersPage() {
   const handleEditSubmit = async (e) => {
     e.preventDefault();
     try {
-      const res = await fetch('/api/users', {
+      const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+      const res = await fetch(`${API_URL}/api/users`, {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
+        headers: getAuthHeaders(session),
         body: JSON.stringify(editForm)
       });
       if (res.ok) {
@@ -117,10 +119,10 @@ export default function UsersPage() {
   const handlePasswordSubmit = async (e) => {
     e.preventDefault();
     try {
-      const res = await fetch('/api/users/password', {
+      const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+      const res = await fetch(`${API_URL}/api/users/password`, {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
+        headers: getAuthHeaders(session),
         body: JSON.stringify(passwordForm)
       });
       if (res.ok) {
@@ -139,9 +141,10 @@ export default function UsersPage() {
   const handleDelete = async (username) => {
     if (!confirm('确定要删除用户 ' + username + ' 吗？')) return;
     try {
-      const res = await fetch('/api/users/' + username, {
+      const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+      const res = await fetch(`${API_URL}/api/users/${username}`, {
         method: 'DELETE',
-        credentials: 'include'
+        headers: getAuthHeaders(session)
       });
       if (res.ok) {
         showMessage('success', '用户删除成功');

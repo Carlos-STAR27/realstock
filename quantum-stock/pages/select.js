@@ -4,6 +4,7 @@ import { useRouter } from 'next/router';
 import { useState, useEffect } from 'react';
 import { Calendar, Play, Loader2, Sparkles, CheckCircle, AlertCircle, Trash2, AlertTriangle, History, ChevronDown, ChevronUp, Plus, X } from 'lucide-react';
 import Layout from '../components/Layout';
+import { getAuthHeaders } from '../utils/api';
 
 export default function SelectPage() {
   const { data: session } = useSession();
@@ -128,17 +129,15 @@ export default function SelectPage() {
     setExecutionResult(null);
 
     try {
-      const response = await fetch('/api/tasks/select_stock', {
+      const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+      const response = await fetch(`${API_URL}/api/tasks/select_stock`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: getAuthHeaders(session),
         body: JSON.stringify({
           start_date: formData.startDate,
           end_date: formData.endDate,
           select_text: formData.selectText
         }),
-        credentials: 'include'
       });
 
       const result = await response.json();

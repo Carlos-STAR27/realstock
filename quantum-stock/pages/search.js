@@ -5,6 +5,7 @@ import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Search, Calendar, Filter, Table, Download, Loader2, Sparkles, TrendingUp, Star, Eye } from 'lucide-react';
 import Layout from '../components/Layout';
+import { getAuthHeaders } from '../utils/api';
 
 export default function SearchPage() {
   const { data: session } = useSession();
@@ -51,8 +52,9 @@ export default function SearchPage() {
   useEffect(() => {
     const loadExecuteDates = async () => {
       try {
-        const response = await fetch('/api/manage/execute_dates', {
-          credentials: 'include'
+        const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+        const response = await fetch(`${API_URL}/api/manage/execute_dates`, {
+          headers: getAuthHeaders(session)
         });
         if (response.ok) {
           const data = await response.json();
@@ -77,10 +79,10 @@ export default function SearchPage() {
   
   const toggleFavorite = async (item) => {
     try {
-      const response = await fetch('/api/stock/toggle_favorite', {
+      const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+      const response = await fetch(`${API_URL}/api/stock/toggle_favorite`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
+        headers: getAuthHeaders(session),
         body: JSON.stringify({
           ts_code: item.ts_code,
           execute_id: item.execute_id
@@ -113,10 +115,10 @@ export default function SearchPage() {
   
   const toggleObservation = async (item) => {
     try {
-      const response = await fetch('/api/stock/toggle_observation', {
+      const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+      const response = await fetch(`${API_URL}/api/stock/toggle_observation`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
+        headers: getAuthHeaders(session),
         body: JSON.stringify({
           ts_code: item.ts_code,
           execute_id: item.execute_id
@@ -150,12 +152,13 @@ export default function SearchPage() {
   const fetchFavoriteResults = async (page) => {
     setIsFavoriteLoading(true);
     try {
+      const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
       const params = new URLSearchParams();
       params.append('page', page);
       params.append('page_size', favoriteResults.pageSize);
 
-      const response = await fetch(`/api/stock/favorite_list?${params.toString()}`, {
-        credentials: 'include'
+      const response = await fetch(`${API_URL}/api/stock/favorite_list?${params.toString()}`, {
+        headers: getAuthHeaders(session)
       });
 
       if (response.ok) {
@@ -177,12 +180,13 @@ export default function SearchPage() {
   const fetchObservationResults = async (page) => {
     setIsObservationLoading(true);
     try {
+      const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
       const params = new URLSearchParams();
       params.append('page', page);
       params.append('page_size', observationResults.pageSize);
 
-      const response = await fetch(`/api/stock/observation_list?${params.toString()}`, {
-        credentials: 'include'
+      const response = await fetch(`${API_URL}/api/stock/observation_list?${params.toString()}`, {
+        headers: getAuthHeaders(session)
       });
 
       if (response.ok) {
@@ -231,6 +235,7 @@ export default function SearchPage() {
     setError(null);
     
     try {
+      const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
       const params = new URLSearchParams();
       if (formData.stockCode) params.append('ts_code', formData.stockCode);
       if (formData.startDate) params.append('buy_date_start', formData.startDate);
@@ -239,8 +244,8 @@ export default function SearchPage() {
       params.append('page', page);
       params.append('page_size', searchResults.pageSize);
 
-      const response = await fetch(`/api/query/stock_selected?${params.toString()}`, {
-        credentials: 'include'
+      const response = await fetch(`${API_URL}/api/query/stock_selected?${params.toString()}`, {
+        headers: getAuthHeaders(session)
       });
 
       if (!response.ok) {

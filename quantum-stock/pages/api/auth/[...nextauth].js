@@ -1,8 +1,6 @@
 import NextAuth from 'next-auth';
 import CredentialsProvider from 'next-auth/providers/credentials';
 
-const NEXTAUTH_URL = process.env.NEXTAUTH_URL || 'http://localhost:3000';
-
 export default NextAuth({
   providers: [
     CredentialsProvider({
@@ -39,7 +37,8 @@ export default NextAuth({
               name: data.name || credentials.username,
               username: data.username || credentials.username,
               email: `${credentials.username}@example.com`,
-              role: data.role || 'user'
+              role: data.role || 'user',
+              backendToken: data.token
             };
           }
           return null;
@@ -63,6 +62,7 @@ export default NextAuth({
         token.id = user.id;
         token.username = user.username;
         token.role = user.role;
+        token.backendToken = user.backendToken;
       }
       return token;
     },
@@ -71,6 +71,7 @@ export default NextAuth({
         session.user.id = token.id;
         session.user.username = token.username;
         session.user.role = token.role;
+        session.user.backendToken = token.backendToken;
       }
       return session;
     }

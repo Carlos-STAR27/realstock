@@ -4,6 +4,7 @@ import { useRouter } from 'next/router';
 import { useState, useEffect, useRef } from 'react';
 import { Calendar, Play, Loader2, Sparkles, CheckCircle, AlertCircle, Download, History, ChevronDown, ChevronUp, BarChart3 } from 'lucide-react';
 import Layout from '../components/Layout';
+import { getAuthHeaders } from '../utils/api';
 
 export default function KlinePage() {
   const { data: session } = useSession();
@@ -124,7 +125,9 @@ export default function KlinePage() {
       if (params.toString()) {
         url += '?' + params.toString();
       }
-      const res = await fetch(url);
+      const res = await fetch(url, {
+        headers: getAuthHeaders(session)
+      });
       const data = await res.json();
       setMonthlyStats(data.items || []);
       setShowMonthlyStats(true);
@@ -202,6 +205,7 @@ export default function KlinePage() {
       url += '?' + params.toString();
       
       const response = await fetch(url, {
+        headers: getAuthHeaders(session),
         signal: tushareAbortControllerRef.current.signal
       });
       
@@ -298,11 +302,8 @@ export default function KlinePage() {
     try {
       const response = await fetch(`${API_URL}/api/process/terminate`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: getAuthHeaders(session),
         body: JSON.stringify({ task_type: 'tushare_verify' }),
-        credentials: 'include'
       });
       const result = await response.json();
       console.log('后端进程终止结果:', result);
@@ -343,11 +344,8 @@ export default function KlinePage() {
     try {
       const response = await fetch(`${API_URL}/api/process/terminate`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: getAuthHeaders(session),
         body: JSON.stringify({ task_type: 'daily_update' }),
-        credentials: 'include'
       });
       const result = await response.json();
       console.log('后端进程终止结果:', result);
@@ -375,17 +373,13 @@ export default function KlinePage() {
     dailyAbortControllerRef.current = new AbortController();
 
     try {
-      // 直接请求后端API，绕过Next.js代理（因为rewrites不支持流式响应）
       const response = await fetch(`${API_URL}/api/tasks/update_daily`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: getAuthHeaders(session),
         body: JSON.stringify({
           start_date: formData.startDate,
           end_date: formData.endDate
         }),
-        credentials: 'include',
         signal: dailyAbortControllerRef.current.signal
       });
 
@@ -466,10 +460,9 @@ export default function KlinePage() {
     namesAbortControllerRef.current = new AbortController();
 
     try {
-      // 直接请求后端API，绕过Next.js代理
       const response = await fetch(`${API_URL}/api/tasks/update_names`, {
         method: 'POST',
-        credentials: 'include',
+        headers: getAuthHeaders(session),
         signal: namesAbortControllerRef.current.signal
       });
 
@@ -551,11 +544,8 @@ export default function KlinePage() {
     try {
       const response = await fetch(`${API_URL}/api/process/terminate`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: getAuthHeaders(session),
         body: JSON.stringify({ task_type: 'names_update' }),
-        credentials: 'include'
       });
       const result = await response.json();
       console.log('后端进程终止结果:', result);
@@ -714,11 +704,8 @@ export default function KlinePage() {
                     try {
                       const response = await fetch(`${API_URL}/api/process/terminate`, {
                         method: 'POST',
-                        headers: {
-                          'Content-Type': 'application/json',
-                        },
+                        headers: getAuthHeaders(session),
                         body: JSON.stringify({ task_type: 'tushare_verify' }),
-                        credentials: 'include'
                       });
                       const result = await response.json();
                       console.log('后端进程终止结果:', result);

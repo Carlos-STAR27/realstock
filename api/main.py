@@ -14,9 +14,9 @@ import signal
 import psutil
 from typing import Optional, Dict
 from pydantic import BaseModel
-from datetime import datetime
+from datetime import datetime, timedelta
+import jwt
 
-# 复用现有 DB 与配置工具
 from utils.db_utils import get_db_engine, get_config
 
 app = FastAPI(title="Quantum Stock API", version="1.0.0")
@@ -170,10 +170,53 @@ def root():
     return {"message": "Quantum Stock API", "version": "1.0.0"}
 
 
-# 认证依赖
+def get_jwt_secret():
+    return get_config("SESSION_SECRET") or get_config("APP_SECRET") or "dev-secret-change-me"
+
+
+def create_token(username: str, name: str, role: str, expires_hours: int = 24):
+    payload = {
+        "username": username,
+        "name": name,
+        "role": role,
+        "exp": datetime.utcnow() + timedelta(hours=expires_hours),
+        "iat": datetime.utcnow()
+    }
+    return jwt.encode(payload, get_jwt_secret(), algorithm="HS256")
+
+
+def verify_token(token: str):
+    try:
+        payload = jwt.decode(token, get_jwt_secret(), algorithms=["HS256"])
+        return payload
+    except jwt.ExpiredSignatureError:
+        return None
+    except jwt.InvalidTokenError:
+        return None
+
+
 def require_auth(request: Request):
-    if not request.session.get("authenticated", False):
-        raise HTTPException(status_code=401, detail="未登录")
+    token = None
+    
+    if "Authorization" in request.headers:
+        auth_header = request.headers["Authorization"]
+        if auth_header.startswith("Bearer "):
+            token = auth_header[7:]
+    
+    if token:
+        payload = verify_token(token)
+        if payload:
+            request.state.user = payload
+            return payload
+    
+    if request.session.get("authenticated", False):
+        return {
+            "username": request.session.get("username"),
+            "name": request.session.get("name"),
+            "role": request.session.get("role")
+        }
+    
+    raise HTTPException(status_code=401, detail="未登录")
 
 
 # ========== Auth ==========
@@ -184,7 +227,6 @@ async def login(request: Request, body: dict):
     
     engine = get_db_engine()
     try:
-        # 先确保表存在
         with engine.connect() as conn:
             conn.execute(text("""
             CREATE TABLE IF NOT EXISTS app_users (
@@ -198,7 +240,6 @@ async def login(request: Request, body: dict):
             """))
             conn.commit()
         
-        # 查询用户
         with engine.connect() as conn:
             row = conn.execute(
                 text("SELECT username, password, name, role FROM app_users WHERE username = :username"),
@@ -208,31 +249,20 @@ async def login(request: Request, body: dict):
             expected_username = get_config("APP_USERNAME", "admin")
             expected_password = get_config("APP_PASSWORD", "admin")
             
+            user_data = None
+            
             if row:
-                # 数据库中有用户
                 if row[0] == expected_username and password == expected_password:
-                    # 如果是admin用户，且密码和配置文件一致，直接登录，确保数据库密码是最新的
                     with engine.begin() as conn_update:
                         conn_update.execute(
                             text("UPDATE app_users SET password = :password WHERE username = :username"),
                             {"password": expected_password, "username": expected_username}
                         )
-                    request.session["authenticated"] = True
-                    request.session["username"] = row[0]
-                    request.session["name"] = row[2]
-                    request.session["role"] = row[3] or "user"
-                    return {"ok": True, "username": row[0], "name": row[2], "role": row[3] or "user"}
+                    user_data = {"username": row[0], "name": row[2], "role": row[3] or "user"}
                 elif row[1] == password:
-                    # 普通用户验证密码
-                    request.session["authenticated"] = True
-                    request.session["username"] = row[0]
-                    request.session["name"] = row[2]
-                    request.session["role"] = row[3] or "user"
-                    return {"ok": True, "username": row[0], "name": row[2], "role": row[3] or "user"}
+                    user_data = {"username": row[0], "name": row[2], "role": row[3] or "user"}
             else:
-                # 数据库中没有用户，检查是否是默认admin
                 if username == expected_username and password == expected_password:
-                    # 默认admin用户登录时，自动创建到数据库
                     with engine.begin() as conn:
                         conn.execute(text("""
                         INSERT INTO app_users (username, password, name, role)
@@ -242,11 +272,23 @@ async def login(request: Request, body: dict):
                             "password": password,
                             "name": "Admin"
                         })
-                    request.session["authenticated"] = True
-                    request.session["username"] = username
-                    request.session["name"] = "Admin"
-                    request.session["role"] = "admin"
-                    return {"ok": True, "username": username, "name": "Admin", "role": "admin"}
+                    user_data = {"username": username, "name": "Admin", "role": "admin"}
+            
+            if user_data:
+                request.session["authenticated"] = True
+                request.session["username"] = user_data["username"]
+                request.session["name"] = user_data["name"]
+                request.session["role"] = user_data["role"]
+                
+                token = create_token(user_data["username"], user_data["name"], user_data["role"])
+                
+                return {
+                    "ok": True, 
+                    "username": user_data["username"], 
+                    "name": user_data["name"], 
+                    "role": user_data["role"],
+                    "token": token
+                }
             
         raise HTTPException(status_code=401, detail="用户名或密码错误")
     except HTTPException:
