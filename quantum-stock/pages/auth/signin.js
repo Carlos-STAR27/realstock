@@ -26,21 +26,7 @@ export default function SignIn() {
     setLoading(true);
 
     try {
-      // 1. 先登录后端API
-      const backendResponse = await fetch('/api/auth/login', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ username, password }),
-        credentials: 'include'
-      });
-
-      if (!backendResponse.ok) {
-        throw new Error('后端认证失败');
-      }
-
-      // 2. 再登录NextAuth
+      // 直接使用 NextAuth 登录（它会调用后端 API）
       const result = await signIn('credentials', {
         username,
         password,
