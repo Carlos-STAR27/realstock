@@ -1,10 +1,9 @@
 import NextAuth from 'next-auth';
 import CredentialsProvider from 'next-auth/providers/credentials';
 
-process.env.NEXTAUTH_URL = process.env.NEXTAUTH_URL || 'http://localhost:3000';
+const NEXTAUTH_URL = process.env.NEXTAUTH_URL || 'http://localhost:3000';
 
 export default NextAuth({
-  // 配置认证提供商
   providers: [
     CredentialsProvider({
       name: 'Credentials',
@@ -22,7 +21,6 @@ export default NextAuth({
       },
       async authorize(credentials) {
         try {
-          // 调用后端API验证用户
           const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
           const res = await fetch(`${apiUrl}/api/auth/login`, {
             method: 'POST',
@@ -52,16 +50,13 @@ export default NextAuth({
       }
     })
   ],
-  // 会话管理配置
   session: {
     strategy: 'jwt',
     maxAge: 30 * 24 * 60 * 60,
   },
-  // 页面配置
   pages: {
     signIn: '/auth/signin',
   },
-  // 回调配置
   callbacks: {
     async jwt({ token, user }) {
       if (user) {
@@ -80,6 +75,5 @@ export default NextAuth({
       return session;
     }
   },
-  // 安全配置
   secret: process.env.NEXTAUTH_SECRET,
 });
