@@ -155,7 +155,7 @@ app.add_middleware(
 )
 
 # 会话与密钥
-SECRET_KEY = get_config("APP_SECRET", "dev-secret-change-me")
+SECRET_KEY = get_config("APP_SECRET") or get_config("SESSION_SECRET") or "dev-secret-change-me"
 app.add_middleware(SessionMiddleware, secret_key=SECRET_KEY)
 
 # 静态资源 - 只有存在时才挂载
