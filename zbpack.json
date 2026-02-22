@@ -1,6 +1,6 @@
 {
   "app_dir": "/app",
   "python": {
-    "entrypoint": "uvicorn api.main:app --host 0.0.0.0 --port ${PORT:-8000}"
+    "entrypoint": "uvicorn api.main:app --host 0.0.0.0 --port $PORT"
   }
 }
