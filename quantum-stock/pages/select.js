@@ -47,11 +47,12 @@ export default function SelectPage() {
 
   const loadLogs = async () => {
     try {
-      const selectRes = await fetch('/api/logs?task_name=选股&limit=5');
+      const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+      const selectRes = await fetch(`${API_URL}/api/logs?task_name=选股&limit=5`);
       const selectData = await selectRes.json();
       setSelectLogs(selectData.items || []);
       
-      const deleteRes = await fetch('/api/logs?task_name=删除&limit=5');
+      const deleteRes = await fetch(`${API_URL}/api/logs?task_name=删除&limit=5`);
       const deleteData = await deleteRes.json();
       setDeleteLogs(deleteData.items || []);
     } catch (error) {
@@ -61,7 +62,10 @@ export default function SelectPage() {
 
   const loadExecuteDates = async () => {
     try {
-      const response = await fetch('/api/manage/execute_dates');
+      const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+      const response = await fetch(`${API_URL}/api/manage/execute_dates`, {
+        headers: getAuthHeaders(session)
+      });
       const data = await response.json();
       setExecuteDates(data.items || []);
     } catch (error) {
@@ -80,8 +84,10 @@ export default function SelectPage() {
     setDeleteResult(null);
 
     try {
-      const response = await fetch(`/api/manage/stock_selected?execute_id=${encodeURIComponent(selectedDate)}`, {
+      const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+      const response = await fetch(`${API_URL}/api/manage/stock_selected?execute_id=${encodeURIComponent(selectedDate)}`, {
         method: 'DELETE',
+        headers: getAuthHeaders(session)
       });
       const data = await response.json();
       
