@@ -42,18 +42,19 @@ def init_db():
             conn.execute(text("""
             CREATE TABLE IF NOT EXISTS cn_stock_daily (
                 ts_code VARCHAR(20) NOT NULL COMMENT '股票代码',
-                trade_date DATE NOT NULL COMMENT '交易日期',
-                price_open DECIMAL(20, 4) COMMENT '开盘价',
-                price_high DECIMAL(20, 4) COMMENT '最高价',
-                price_low DECIMAL(20, 4) COMMENT '最低价',
-                price_close DECIMAL(20, 4) COMMENT '收盘价',
-                price_pre_close DECIMAL(20, 4) COMMENT '昨收价',
-                amt_chg DECIMAL(20, 4) COMMENT '涨跌额',
-                pct_chg DECIMAL(20, 4) COMMENT '涨跌幅',
-                vol DECIMAL(20, 4) COMMENT '成交量',
-                amount DECIMAL(20, 4) COMMENT '成交额',
+                trade_date VARCHAR(8) NOT NULL COMMENT '交易日期(YYYYMMDD)',
+                price_open FLOAT COMMENT '开盘价',
+                price_high FLOAT COMMENT '最高价',
+                price_low FLOAT COMMENT '最低价',
+                price_close FLOAT COMMENT '收盘价',
+                price_pre_close FLOAT COMMENT '前收盘价',
+                amt_chg FLOAT COMMENT '涨跌额',
+                pct_chg FLOAT COMMENT '涨跌幅(%)',
+                vol BIGINT COMMENT '成交量(手)',
+                amount FLOAT COMMENT '成交额(千元)',
+                update_date VARCHAR(8) NOT NULL COMMENT '更新时间',
                 PRIMARY KEY (ts_code, trade_date)
-            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='A股日线数据表';
             """))
 
             # 3. 创建 stock_selected 表
