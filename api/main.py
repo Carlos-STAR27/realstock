@@ -567,12 +567,24 @@ def get_monthly_counts(
             # 在Python中处理年月分组
             monthly_data = {}
             for row in rows:
-                trade_date = str(row["trade_date"])
-                if len(trade_date) >= 6:
-                    year_month = f"{trade_date[:4]}-{trade_date[4:6]}"
-                    if year_month not in monthly_data:
-                        monthly_data[year_month] = 0
-                    monthly_data[year_month] += row["total_count"]
+                trade_date = row["trade_date"]
+                # 处理 date 类型或字符串类型
+                if hasattr(trade_date, 'year'):
+                    # datetime.date 对象
+                    year_month = f"{trade_date.year}-{trade_date.month:02d}"
+                else:
+                    # 字符串格式 (YYYYMMDD 或 YYYY-MM-DD)
+                    trade_date_str = str(trade_date)
+                    if len(trade_date_str) == 8:
+                        year_month = f"{trade_date_str[:4]}-{trade_date_str[4:6]}"
+                    elif len(trade_date_str) >= 7:
+                        year_month = trade_date_str[:7]
+                    else:
+                        continue
+                
+                if year_month not in monthly_data:
+                    monthly_data[year_month] = 0
+                monthly_data[year_month] += row["total_count"]
             
             # 转换为列表格式
             items = []
