@@ -365,27 +365,27 @@ if __name__ == "__main__":
         # 获取当前时间（程序执行结束时间）
         execute_end_time = datetime.now()
         
-        # 格式化日期为 m/d 格式（去除前导0）
-        def format_mm_dd(date_str):
+        # 格式化日期为 m.d 格式（去除前导0）
+        def format_m_d(date_str):
             if len(date_str) == 8:
                 month = date_str[4:6].lstrip('0') or '0'
                 day = date_str[6:8].lstrip('0') or '0'
-                return f"{month}/{day}"
+                return f"{month}.{day}"
             elif '-' in date_str:
                 parts = date_str.split('-')
                 if len(parts) >= 3:
                     month = parts[1].lstrip('0') or '0'
                     day = parts[2].lstrip('0') or '0'
-                    return f"{month}/{day}"
+                    return f"{month}.{day}"
             return date_str
         
-        # execute_id：当前日期+空格+交易日期（Start）&～&交易日期（End）+空格+选股说明
+        # execute_id：当前日期+空格+交易日期（Start）+"-"+交易日期（End）+选股说明
         execute_id_value = execute_end_time.strftime('%Y-%m-%d')
-        start_mm_dd = format_mm_dd(start_date)
-        end_mm_dd = format_mm_dd(end_date)
-        execute_id_value = f"{execute_id_value} {start_mm_dd}～{end_mm_dd}"
+        start_m_d = format_m_d(start_date)
+        end_m_d = format_m_d(end_date)
+        execute_id_value = f"{execute_id_value} {start_m_d}-{end_m_d}"
         if select_text:
-            execute_id_value = f"{execute_id_value} {select_text}"
+            execute_id_value = f"{execute_id_value}{select_text}"
         Stock_Selected['execute_id'] = execute_id_value
         
         # 添加 execute_date 和 execute_time 字段（线上数据库主键需要）
