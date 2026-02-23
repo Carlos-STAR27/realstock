@@ -387,6 +387,10 @@ if __name__ == "__main__":
         if select_text:
             execute_id_value = f"{execute_id_value} {select_text}"
         Stock_Selected['execute_id'] = execute_id_value
+        
+        # 添加 execute_date 和 execute_time 字段（线上数据库主键需要）
+        Stock_Selected['execute_date'] = execute_end_time.date()
+        Stock_Selected['execute_time'] = execute_end_time.time()
 
         # 调整字段顺序：将execute_id放到最前面
         if not Stock_Selected.empty:
@@ -429,7 +433,7 @@ if __name__ == "__main__":
                 update_str = ', '.join([
                     f"{col} = VALUES({col})"
                     for col in columns
-                    if col not in ['execute_id', 'ts_code', 'trade_date']
+                    if col not in ['execute_date', 'execute_time', 'ts_code', 'trade_date']
                 ])
 
                 # 3. 批量处理数据
