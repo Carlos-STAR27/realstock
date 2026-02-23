@@ -170,6 +170,40 @@ def root():
     return {"message": "Quantum Stock API", "version": "1.0.0"}
 
 
+@app.get("/api/debug/db")
+def debug_db():
+    """诊断端点：检查数据库连接和表结构"""
+    import os
+    from utils.db_utils import get_db_config_debug
+    
+    engine = get_db_engine()
+    result = {
+        "env_vars": {
+            "DB_HOST": os.getenv("DB_HOST", "NOT SET"),
+            "DB_PORT": os.getenv("DB_PORT", "NOT SET"),
+            "DB_USER": os.getenv("DB_USER", "NOT SET"),
+            "DB_NAME": os.getenv("DB_NAME", "NOT SET"),
+        },
+        "ssl_debug": get_db_config_debug(),
+        "tables": [],
+        "stock_selected_columns": []
+    }
+    
+    try:
+        with engine.connect() as conn:
+            # 获取所有表
+            tables = conn.execute(text("SHOW TABLES")).fetchall()
+            result["tables"] = [t[0] for t in tables]
+            
+            # 获取stock_selected表结构
+            cols = conn.execute(text("DESCRIBE stock_selected")).fetchall()
+            result["stock_selected_columns"] = [c[0] for c in cols]
+    except Exception as e:
+        result["error"] = str(e)
+    
+    return result
+
+
 def get_jwt_secret():
     return get_config("SESSION_SECRET") or get_config("APP_SECRET") or "dev-secret-change-me"
 
