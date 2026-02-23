@@ -161,15 +161,19 @@ export default function SearchPage() {
         headers: getAuthHeaders(session)
       });
 
-      if (response.ok) {
-        const data = await response.json();
-        setFavoriteResults({
-          items: data.items || [],
-          total: data.total || 0,
-          page,
-          pageSize: favoriteResults.pageSize
-        });
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        console.error('自选股查询失败:', response.status, errorData);
+        throw new Error(errorData.detail || `请求失败 (${response.status})`);
       }
+
+      const data = await response.json();
+      setFavoriteResults({
+        items: data.items || [],
+        total: data.total || 0,
+        page,
+        pageSize: favoriteResults.pageSize
+      });
     } catch (err) {
       console.error('Failed to fetch favorites:', err);
     } finally {
@@ -189,15 +193,19 @@ export default function SearchPage() {
         headers: getAuthHeaders(session)
       });
 
-      if (response.ok) {
-        const data = await response.json();
-        setObservationResults({
-          items: data.items || [],
-          total: data.total || 0,
-          page,
-          pageSize: observationResults.pageSize
-        });
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        console.error('观察股查询失败:', response.status, errorData);
+        throw new Error(errorData.detail || `请求失败 (${response.status})`);
       }
+
+      const data = await response.json();
+      setObservationResults({
+        items: data.items || [],
+        total: data.total || 0,
+        page,
+        pageSize: observationResults.pageSize
+      });
     } catch (err) {
       console.error('Failed to fetch observations:', err);
     } finally {
@@ -249,7 +257,9 @@ export default function SearchPage() {
       });
 
       if (!response.ok) {
-        throw new Error('查询失败');
+        const errorData = await response.json().catch(() => ({}));
+        console.error('查询失败:', response.status, errorData);
+        throw new Error(errorData.detail || `查询失败 (${response.status})`);
       }
 
       const data = await response.json();
@@ -260,7 +270,8 @@ export default function SearchPage() {
         pageSize: searchResults.pageSize
       });
     } catch (err) {
-      setError(err.message);
+      console.error('查询出错:', err);
+      setError(err.message || '查询失败，请重试');
     } finally {
       setIsLoading(false);
     }

@@ -387,6 +387,7 @@ def query_stock_selected(
     execute_id: Optional[str] = None,
     page: int = 1,
     page_size: int = 50,
+    dep=Depends(require_auth),
 ):
     engine = get_db_engine()
     base_where = " WHERE 1=1"
